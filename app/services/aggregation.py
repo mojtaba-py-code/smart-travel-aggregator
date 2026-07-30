@@ -8,13 +8,13 @@ the response is flagged ``degraded`` rather than failing the whole request.
 from __future__ import annotations
 
 import asyncio
-import base64
 from dataclasses import dataclass, field
 from enum import StrEnum
 
 from app.core.logging import get_logger
 from app.domain.dto import NormalizedFlight
 from app.domain.ports import FlightProvider, FlightSearchQuery
+from app.services.pagination import decode_cursor, encode_cursor
 
 logger = get_logger("aggregation")
 
@@ -89,10 +89,10 @@ class FlightAggregationService:
         ranked = self._rank(filtered)
         ordered = self._sort(ranked, sort)
 
-        offset = _decode_cursor(cursor)
+        offset = decode_cursor(cursor)
         page = ordered[offset : offset + limit]
         has_more = offset + limit < len(ordered)
-        next_cursor = _encode_cursor(offset + limit) if has_more else None
+        next_cursor = encode_cursor(offset + limit) if has_more else None
 
         return AggregationResult(
             items=page,
@@ -170,17 +170,3 @@ class FlightAggregationService:
             SortKey.STOPS: lambda r: r.flight.stops,
         }
         return sorted(ranked, key=keys[sort])
-
-
-def _encode_cursor(offset: int) -> str:
-    return base64.urlsafe_b64encode(str(offset).encode()).decode()
-
-
-def _decode_cursor(cursor: str | None) -> int:
-    if not cursor:
-        return 0
-    try:
-        offset = int(base64.urlsafe_b64decode(cursor.encode()).decode())
-    except (ValueError, TypeError):
-        return 0
-    return max(0, offset)

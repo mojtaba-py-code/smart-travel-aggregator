@@ -23,6 +23,7 @@ from app.domain.ports import CurrencyProvider, WeatherProvider
 from app.repositories.users import UserRepository
 from app.services.aggregation import FlightAggregationService
 from app.services.auth_service import AuthService
+from app.services.hotel_aggregation import HotelAggregationService
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -73,6 +74,12 @@ def get_flight_service(
     container: Annotated[Container, Depends(get_container)],
 ) -> FlightAggregationService:
     return container.flight_service
+
+
+def get_hotel_service(
+    container: Annotated[Container, Depends(get_container)],
+) -> HotelAggregationService:
+    return container.hotel_service
 
 
 def get_weather_provider(

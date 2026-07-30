@@ -33,6 +33,17 @@ class NormalizedFlight(BaseModel):
         return self.stops == 0
 
 
+class NormalizedHotel(BaseModel):
+    id: str
+    provider: str
+    name: str
+    city: str
+    rating: float = Field(ge=0, le=5)
+    reviews_count: int = Field(ge=0)
+    price_per_night: Money
+    amenities: list[str] = Field(default_factory=list)
+
+
 class WeatherForecast(BaseModel):
     latitude: float
     longitude: float

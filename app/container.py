@@ -16,10 +16,12 @@ from app.db.session import create_engine, create_session_factory
 from app.providers.currency import ExchangeRateProvider
 from app.providers.http_client import ResilientHttpClient
 from app.providers.sample_flights import SampleFlightProvider
+from app.providers.sample_hotels import SampleHotelProvider
 from app.providers.weather import OpenMeteoWeatherProvider
 from app.resilience.cache import Cache, InMemoryCache
 from app.resilience.circuit_breaker import CircuitBreaker
 from app.services.aggregation import FlightAggregationService
+from app.services.hotel_aggregation import HotelAggregationService
 from app.services.notifications import ConsoleNotifier, Notifier
 from app.services.token_blocklist import TokenBlocklist
 
@@ -53,6 +55,12 @@ class Container:
                 SampleFlightProvider(
                     "globehop", ["Turkish Airlines", "Qatar Airways", "Emirates"], base_price=10500
                 ),
+            ]
+        )
+        self.hotel_service = HotelAggregationService(
+            [
+                SampleHotelProvider("stayfinder"),
+                SampleHotelProvider("roomhub", base_price=6500),
             ]
         )
 

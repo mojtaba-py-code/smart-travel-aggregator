@@ -9,6 +9,11 @@ All notable changes to this project are documented here. The format follows
 ### Added
 - Prometheus `/metrics` endpoint exposing per-route RED metrics (request count
   and latency histogram), with route-template labels to bound cardinality.
+- Hotel search (`GET /hotels/search`) aggregated behind a `HotelProvider` port,
+  with de-duplication, rating/price ranking, filtering and cursor pagination.
+
+### Changed
+- Extracted the shared cursor pagination helpers used by both aggregators.
 
 ## [1.0.0] - 2026-07-30
 

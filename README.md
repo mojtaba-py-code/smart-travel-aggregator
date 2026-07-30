@@ -75,6 +75,7 @@ request flow.
 | POST | `/api/v1/auth/password-reset/confirm` | – | Set a new password with a reset token |
 | GET | `/api/v1/auth/me` | bearer | Current profile |
 | GET | `/api/v1/flights/search` | optional | Aggregated, ranked flight search |
+| GET | `/api/v1/hotels/search` | – | Aggregated, ranked hotel search |
 | GET | `/api/v1/weather` | – | Forecast for a location & date |
 | GET | `/api/v1/currency/convert` | – | Currency conversion |
 | POST/GET/DELETE | `/api/v1/price-alerts` | bearer | Manage price alerts |

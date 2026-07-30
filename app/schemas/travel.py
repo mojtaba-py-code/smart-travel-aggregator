@@ -38,6 +38,24 @@ class FlightSearchResponse(BaseModel):
     meta: SearchMetaOut
 
 
+class HotelOfferOut(BaseModel):
+    id: str
+    name: str
+    city: str
+    rating: float
+    reviews_count: int
+    price_per_night: MoneyOut
+    amenities: list[str]
+    provider: str
+    score: float
+
+
+class HotelSearchResponse(BaseModel):
+    data: list[HotelOfferOut]
+    page: PageInfo
+    meta: SearchMetaOut
+
+
 class WeatherOut(BaseModel):
     latitude: float
     longitude: float

@@ -11,7 +11,12 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Protocol
 
-from app.domain.dto import CurrencyConversion, NormalizedFlight, WeatherForecast
+from app.domain.dto import (
+    CurrencyConversion,
+    NormalizedFlight,
+    NormalizedHotel,
+    WeatherForecast,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,10 +28,28 @@ class FlightSearchQuery:
     cabin_class: str = "economy"
 
 
+@dataclass(frozen=True, slots=True)
+class HotelSearchQuery:
+    city: str
+    check_in: date
+    check_out: date
+    guests: int = 2
+
+    @property
+    def nights(self) -> int:
+        return max(1, (self.check_out - self.check_in).days)
+
+
 class FlightProvider(Protocol):
     name: str
 
     async def search(self, query: FlightSearchQuery) -> list[NormalizedFlight]: ...
+
+
+class HotelProvider(Protocol):
+    name: str
+
+    async def search(self, query: HotelSearchQuery) -> list[NormalizedHotel]: ...
 
 
 class WeatherProvider(Protocol):
