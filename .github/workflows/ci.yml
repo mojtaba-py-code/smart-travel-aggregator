@@ -42,6 +42,11 @@ jobs:
           pip install bandit
           bandit -q -r app --severity-level medium
 
+      - name: pip-audit (dependency CVEs)
+        run: |
+          pip install pip-audit
+          pip-audit --skip-editable
+
   docker:
     needs: quality
     runs-on: ubuntu-latest

@@ -1,5 +1,11 @@
 # Smart Travel Aggregator
 
+[![CI](https://github.com/mojtaba-py-code/smart-travel-aggregator/actions/workflows/ci.yml/badge.svg)](https://github.com/mojtaba-py-code/smart-travel-aggregator/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org)
+[![Coverage](https://img.shields.io/badge/coverage-92%25-brightgreen.svg)](#testing--quality)
+[![Ruff](https://img.shields.io/badge/lint-ruff-261230.svg)](https://github.com/astral-sh/ruff)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 A production-minded travel aggregation platform. It fans out to multiple travel
 providers (flights, hotels, weather, currency), normalizes their responses,
 ranks them, and serves the result through one clean, versioned, resilient REST
