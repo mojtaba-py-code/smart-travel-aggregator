@@ -10,10 +10,13 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, RedisDsn, field_validator
+from pydantic import Field, RedisDsn, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Environment = Literal["development", "test", "staging", "production"]
+
+# Shipping default — usable for local dev, refused in production (see validator below).
+INSECURE_DEFAULT_SECRET = "change-me-in-production-please-32-chars-min"
 
 
 class Settings(BaseSettings):
@@ -32,7 +35,7 @@ class Settings(BaseSettings):
 
     # --- security ----------------------------------------------------------
     secret_key: str = Field(
-        default="change-me-in-production-please-32-chars-min",
+        default=INSECURE_DEFAULT_SECRET,
         min_length=32,
         description="Signing key for JWTs; override in every real environment.",
     )
@@ -63,6 +66,17 @@ class Settings(BaseSettings):
         if isinstance(value, str):
             return [item.strip() for item in value.split(",") if item.strip()]
         return value
+
+    @model_validator(mode="after")
+    def _refuse_default_secret_in_production(self) -> Settings:
+        if self.environment in ("staging", "production") and (
+            self.secret_key == INSECURE_DEFAULT_SECRET
+        ):
+            raise ValueError(
+                "SECRET_KEY must be set to a unique value in staging/production; "
+                "the shipped default is not allowed."
+            )
+        return self
 
     @property
     def is_production(self) -> bool:
