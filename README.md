@@ -80,6 +80,7 @@ request flow.
 | POST/GET/DELETE | `/api/v1/price-alerts` | bearer | Manage price alerts |
 | GET | `/api/v1/admin/metrics` | admin | Dashboard metrics |
 | GET | `/api/v1/health/live`, `/ready` | – | Probes |
+| GET | `/metrics` | – | Prometheus exposition (RED metrics per route) |
 
 Interactive docs are served at `/docs` (Swagger) and `/redoc` when the app runs.
 

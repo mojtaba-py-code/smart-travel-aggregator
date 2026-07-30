@@ -14,6 +14,7 @@ from app.container import Container
 from app.core.config import Settings, get_settings
 from app.core.errors import register_exception_handlers
 from app.core.logging import configure_logging, get_logger
+from app.core.metrics import PrometheusMiddleware, metrics_endpoint
 from app.core.middleware import RequestContextMiddleware, SecurityHeadersMiddleware
 
 logger = get_logger("app")
@@ -48,6 +49,7 @@ def create_app(settings: Settings | None = None, *, container: Container | None 
     )
 
     app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(PrometheusMiddleware)
     app.add_middleware(RequestContextMiddleware)
     app.add_middleware(
         CORSMiddleware,
@@ -59,6 +61,7 @@ def create_app(settings: Settings | None = None, *, container: Container | None 
 
     register_exception_handlers(app)
     app.include_router(api_router, prefix=settings.api_prefix)
+    app.add_api_route("/metrics", metrics_endpoint, include_in_schema=False)
     return app
 
 
