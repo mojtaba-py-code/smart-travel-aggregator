@@ -82,9 +82,6 @@ class CircuitBreaker:
     async def _on_failure(self) -> None:
         async with self._lock:
             self._failures += 1
-            if (
-                self._state is CircuitState.HALF_OPEN
-                or self._failures >= self._failure_threshold
-            ):
+            if self._state is CircuitState.HALF_OPEN or self._failures >= self._failure_threshold:
                 self._state = CircuitState.OPEN
                 self._opened_at = self._clock()

@@ -106,9 +106,7 @@ class FlightAggregationService:
             has_more=has_more,
         )
 
-    async def _fan_out(
-        self, query: FlightSearchQuery
-    ) -> tuple[list[NormalizedFlight], int, int]:
+    async def _fan_out(self, query: FlightSearchQuery) -> tuple[list[NormalizedFlight], int, int]:
         results = await asyncio.gather(
             *(provider.search(query) for provider in self._providers),
             return_exceptions=True,
@@ -118,9 +116,7 @@ class FlightAggregationService:
         for provider, result in zip(self._providers, results, strict=True):
             if isinstance(result, BaseException):
                 failed += 1
-                logger.warning(
-                    "provider_failed", provider=provider.name, error=str(result)
-                )
+                logger.warning("provider_failed", provider=provider.name, error=str(result))
                 continue
             ok += 1
             flights.extend(result)
@@ -155,13 +151,9 @@ class FlightAggregationService:
 
         ranked: list[RankedFlight] = []
         for flight in flights:
-            price_norm = (
-                (flight.price.amount_minor - min_price) / price_span if price_span else 0.0
-            )
+            price_norm = (flight.price.amount_minor - min_price) / price_span if price_span else 0.0
             duration_norm = (
-                (flight.duration_minutes - min_duration) / duration_span
-                if duration_span
-                else 0.0
+                (flight.duration_minutes - min_duration) / duration_span if duration_span else 0.0
             )
             stops_norm = flight.stops / max_stops if max_stops else 0.0
             penalty = 0.5 * price_norm + 0.3 * duration_norm + 0.2 * stops_norm

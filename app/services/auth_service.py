@@ -84,8 +84,7 @@ class AuthService:
             to=user.email,
             subject="Verify your Smart Travel account",
             body=(
-                "Welcome! Confirm your email to activate your account. "
-                f"Verification token: {token}"
+                f"Welcome! Confirm your email to activate your account. Verification token: {token}"
             ),
         )
 

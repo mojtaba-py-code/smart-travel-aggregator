@@ -38,9 +38,7 @@ def needs_rehash(hashed: str) -> bool:
     return _hasher.check_needs_rehash(hashed)
 
 
-def _create_token(
-    *, subject: str, token_type: TokenType, ttl: int, settings: Settings
-) -> str:
+def _create_token(*, subject: str, token_type: TokenType, ttl: int, settings: Settings) -> str:
     now = datetime.now(UTC)
     payload: dict[str, Any] = {
         "sub": subject,

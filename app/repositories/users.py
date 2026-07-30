@@ -18,15 +18,11 @@ class UserRepository:
         return await self._session.get(User, user_id)
 
     async def get_by_email(self, email: str) -> User | None:
-        result = await self._session.execute(
-            select(User).where(User.email == email.lower())
-        )
+        result = await self._session.execute(select(User).where(User.email == email.lower()))
         return result.scalar_one_or_none()
 
     async def exists_by_email(self, email: str) -> bool:
-        result = await self._session.execute(
-            select(User.id).where(User.email == email.lower())
-        )
+        result = await self._session.execute(select(User.id).where(User.email == email.lower()))
         return result.first() is not None
 
     async def create(

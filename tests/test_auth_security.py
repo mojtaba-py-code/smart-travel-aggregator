@@ -145,9 +145,7 @@ async def test_logout_requires_auth(client: httpx.AsyncClient) -> None:
 
 
 @pytest.mark.parametrize("endpoint", ["verify-email", "password-reset/confirm"])
-async def test_token_endpoints_reject_empty_token(
-    client: httpx.AsyncClient, endpoint: str
-) -> None:
+async def test_token_endpoints_reject_empty_token(client: httpx.AsyncClient, endpoint: str) -> None:
     if endpoint == "verify-email":
         body = {"token": ""}
     else:

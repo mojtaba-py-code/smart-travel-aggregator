@@ -86,9 +86,7 @@ class PriceAlert(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         Enum(AlertChannel, native_enum=False, length=16), default=AlertChannel.EMAIL
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    triggered_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), default=None
-    )
+    triggered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 
     user: Mapped[User] = relationship(back_populates="price_alerts")
 

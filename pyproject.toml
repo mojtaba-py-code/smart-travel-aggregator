@@ -32,8 +32,8 @@ dev = [
     "pytest-asyncio>=0.23",
     "pytest-cov>=5.0",
     "ruff>=0.5",
-    "black>=24.4",
     "mypy>=1.10",
+    "bandit>=1.7",
     "pre-commit>=3.7",
 ]
 
@@ -65,10 +65,6 @@ known-first-party = ["app", "tests"]
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S105", "S106", "PLR2004"]
 "alembic/**" = ["E501", "F401"]
-
-[tool.black]
-line-length = 100
-target-version = ["py312"]
 
 [tool.mypy]
 python_version = "3.12"

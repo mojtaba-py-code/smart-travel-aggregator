@@ -10,10 +10,11 @@ install:
 
 lint:
 	$(PY) -m ruff check app tests
+	$(PY) -m ruff format --check app tests
 
 format:
 	$(PY) -m ruff check app tests --fix
-	$(PY) -m black app tests
+	$(PY) -m ruff format app tests
 
 type:
 	$(PY) -m mypy app

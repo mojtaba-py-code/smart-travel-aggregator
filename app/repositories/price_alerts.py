@@ -46,13 +46,9 @@ class PriceAlertRepository:
         )
         return list(result.scalars().all())
 
-    async def get_owned(
-        self, alert_id: uuid.UUID, user_id: uuid.UUID
-    ) -> PriceAlert | None:
+    async def get_owned(self, alert_id: uuid.UUID, user_id: uuid.UUID) -> PriceAlert | None:
         result = await self._session.execute(
-            select(PriceAlert).where(
-                PriceAlert.id == alert_id, PriceAlert.user_id == user_id
-            )
+            select(PriceAlert).where(PriceAlert.id == alert_id, PriceAlert.user_id == user_id)
         )
         return result.scalar_one_or_none()
 

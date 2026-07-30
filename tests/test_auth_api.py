@@ -79,9 +79,7 @@ async def test_refresh_issues_new_tokens(client: httpx.AsyncClient) -> None:
 async def test_refresh_rejects_access_token(client: httpx.AsyncClient) -> None:
     await register_user(client)
     tokens = await login(client)
-    resp = await client.post(
-        "/api/v1/auth/refresh", json={"refresh_token": tokens["access_token"]}
-    )
+    resp = await client.post("/api/v1/auth/refresh", json={"refresh_token": tokens["access_token"]})
     assert resp.status_code == 401
 
 
@@ -91,7 +89,5 @@ async def test_me_requires_auth(client: httpx.AsyncClient) -> None:
 
 
 async def test_me_rejects_garbage_token(client: httpx.AsyncClient) -> None:
-    resp = await client.get(
-        "/api/v1/auth/me", headers={"Authorization": "Bearer not.a.jwt"}
-    )
+    resp = await client.get("/api/v1/auth/me", headers={"Authorization": "Bearer not.a.jwt"})
     assert resp.status_code == 401

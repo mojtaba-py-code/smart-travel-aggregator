@@ -24,9 +24,7 @@ class ExchangeRateProvider:
         )
         return self._normalize(payload, base, quote, amount)
 
-    def _normalize(
-        self, payload: Any, base: str, quote: str, amount: float
-    ) -> CurrencyConversion:
+    def _normalize(self, payload: Any, base: str, quote: str, amount: float) -> CurrencyConversion:
         try:
             info = payload["info"]
             rate = float(info["rate"])

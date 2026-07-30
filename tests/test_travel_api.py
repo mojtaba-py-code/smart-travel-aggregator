@@ -104,9 +104,7 @@ def fake_providers(app: FastAPI) -> None:
     app.dependency_overrides[get_currency_provider] = FakeCurrency
 
 
-async def test_weather_endpoint(
-    client: httpx.AsyncClient, fake_providers: None
-) -> None:
+async def test_weather_endpoint(client: httpx.AsyncClient, fake_providers: None) -> None:
     resp = await client.get(
         "/api/v1/weather",
         params={"latitude": 35.7, "longitude": 51.4, "day": "2026-08-10"},
@@ -123,9 +121,7 @@ async def test_weather_rejects_out_of_range_latitude(client: httpx.AsyncClient) 
     assert resp.status_code == 422
 
 
-async def test_currency_endpoint(
-    client: httpx.AsyncClient, fake_providers: None
-) -> None:
+async def test_currency_endpoint(client: httpx.AsyncClient, fake_providers: None) -> None:
     resp = await client.get(
         "/api/v1/currency/convert",
         params={"base": "USD", "quote": "EUR", "amount": 50},

@@ -108,9 +108,7 @@ async def get_access_payload(
     if credentials is None:
         raise AuthenticationError("missing bearer token")
     try:
-        payload = decode_token(
-            credentials.credentials, expected_type="access", settings=settings
-        )
+        payload = decode_token(credentials.credentials, expected_type="access", settings=settings)
     except TokenError as exc:
         raise AuthenticationError(str(exc)) from exc
     if await container.token_blocklist.is_revoked(payload):
@@ -139,9 +137,7 @@ async def get_optional_user(
     if credentials is None:
         return None
     try:
-        payload = decode_token(
-            credentials.credentials, expected_type="access", settings=settings
-        )
+        payload = decode_token(credentials.credentials, expected_type="access", settings=settings)
     except TokenError:
         return None
     return await UserRepository(session).get_by_id(uuid.UUID(payload["sub"]))

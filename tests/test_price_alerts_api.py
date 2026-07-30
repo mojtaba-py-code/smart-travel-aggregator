@@ -41,9 +41,7 @@ async def test_create_alert_same_route_rejected(
     assert resp.status_code == 400
 
 
-async def test_delete_alert(
-    client: httpx.AsyncClient, auth_headers: dict[str, str]
-) -> None:
+async def test_delete_alert(client: httpx.AsyncClient, auth_headers: dict[str, str]) -> None:
     created = await client.post("/api/v1/price-alerts", json=ALERT, headers=auth_headers)
     alert_id = created.json()["id"]
     deleted = await client.delete(f"/api/v1/price-alerts/{alert_id}", headers=auth_headers)

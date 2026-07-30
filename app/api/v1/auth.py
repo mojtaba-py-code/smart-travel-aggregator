@@ -47,9 +47,7 @@ async def register(
     user = await auth.register(
         email=payload.email, password=payload.password, full_name=payload.full_name
     )
-    session.add(
-        AuditLog(actor_id=user.id, action="user.register", ip_address=_client_ip(request))
-    )
+    session.add(AuditLog(actor_id=user.id, action="user.register", ip_address=_client_ip(request)))
     return UserOut.model_validate(user)
 
 
@@ -61,9 +59,7 @@ async def login(
     auth: Annotated[AuthService, Depends(get_auth_service)],
 ) -> TokenResponse:
     user = await auth.authenticate(email=payload.email, password=payload.password)
-    session.add(
-        AuditLog(actor_id=user.id, action="user.login", ip_address=_client_ip(request))
-    )
+    session.add(AuditLog(actor_id=user.id, action="user.login", ip_address=_client_ip(request)))
     tokens = auth.issue_tokens(user)
     return TokenResponse(
         access_token=tokens.access_token,

@@ -61,9 +61,7 @@ class ResilientHttpClient:
             payload = await self._breaker.call(lambda: self._get_with_retry(url, params))
         except CircuitBreakerOpen as exc:
             logger.warning("circuit_open", provider=self._provider)
-            raise ProviderUnavailableError(
-                f"{self._provider} is temporarily unavailable"
-            ) from exc
+            raise ProviderUnavailableError(f"{self._provider} is temporarily unavailable") from exc
 
         if cache_key is not None and self._cache is not None and cache_ttl:
             await self._cache.set(cache_key, json.dumps(payload), cache_ttl)
