@@ -17,7 +17,7 @@ from argon2.exceptions import InvalidHashError, VerifyMismatchError
 
 from app.core.config import Settings
 
-TokenType = Literal["access", "refresh"]
+TokenType = Literal["access", "refresh", "verify", "reset"]
 
 _hasher = PasswordHasher()
 
@@ -66,6 +66,24 @@ def create_refresh_token(subject: str, settings: Settings) -> str:
         subject=subject,
         token_type="refresh",
         ttl=settings.refresh_token_ttl,
+        settings=settings,
+    )
+
+
+def create_verify_token(subject: str, settings: Settings) -> str:
+    return _create_token(
+        subject=subject,
+        token_type="verify",
+        ttl=settings.verify_token_ttl,
+        settings=settings,
+    )
+
+
+def create_reset_token(subject: str, settings: Settings) -> str:
+    return _create_token(
+        subject=subject,
+        token_type="reset",
+        ttl=settings.reset_token_ttl,
         settings=settings,
     )
 

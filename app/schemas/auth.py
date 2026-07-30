@@ -11,6 +11,15 @@ _MIN_PASSWORD_LEN = 10
 _MAX_PASSWORD_LEN = 128
 
 
+def validate_password_strength(value: str) -> str:
+    """Require a mix of case and character classes without being obnoxious."""
+    if value.isalpha() or value.isdigit():
+        raise ValueError("password must mix letters and numbers")
+    if value.lower() == value or value.upper() == value:
+        raise ValueError("password must contain upper and lower case letters")
+    return value
+
+
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=_MIN_PASSWORD_LEN, max_length=_MAX_PASSWORD_LEN)
@@ -19,12 +28,7 @@ class RegisterRequest(BaseModel):
     @field_validator("password")
     @classmethod
     def _password_strength(cls, value: str) -> str:
-        # Require some variety without being obnoxious about it.
-        if value.isalpha() or value.isdigit():
-            raise ValueError("password must mix letters and numbers")
-        if value.lower() == value or value.upper() == value:
-            raise ValueError("password must contain upper and lower case letters")
-        return value
+        return validate_password_strength(value)
 
     @field_validator("full_name")
     @classmethod
@@ -42,6 +46,36 @@ class LoginRequest(BaseModel):
 
 class RefreshRequest(BaseModel):
     refresh_token: str = Field(min_length=1)
+
+
+class VerifyEmailRequest(BaseModel):
+    token: str = Field(min_length=1)
+
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str = Field(min_length=1)
+    new_password: str = Field(min_length=_MIN_PASSWORD_LEN, max_length=_MAX_PASSWORD_LEN)
+
+    @field_validator("new_password")
+    @classmethod
+    def _password_strength(cls, value: str) -> str:
+        return validate_password_strength(value)
+
+
+class LogoutRequest(BaseModel):
+    refresh_token: str | None = None
+
+
+class MessageResponse(BaseModel):
+    message: str
 
 
 class TokenResponse(BaseModel):

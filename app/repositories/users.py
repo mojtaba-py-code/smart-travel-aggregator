@@ -50,3 +50,7 @@ class UserRepository:
     async def update_password(self, user: User, hashed_password: str) -> None:
         user.hashed_password = hashed_password
         await self._session.flush()
+
+    async def mark_verified(self, user: User) -> None:
+        user.is_verified = True
+        await self._session.flush()

@@ -18,8 +18,9 @@ suite baked in from the start.
   fan-out, de-duplication, ranking, and **graceful degradation** (a failing
   provider is dropped and the response is flagged `degraded`, never a 500).
 - **Security first** — Argon2id password hashing, JWT access/refresh tokens with
-  a `type` claim, RBAC, per-client rate limiting, hardened HTTP headers, and an
-  append-only audit log.
+  a `type` claim, email verification, password reset, logout via token
+  revocation (denylist), RBAC, per-client rate limiting, hardened HTTP headers,
+  and an append-only audit log.
 - **Input validation everywhere** — Pydantic v2 models and typed query
   parameters reject bad input at the edge; errors come back as RFC 7807
   `application/problem+json` with a `trace_id`.
@@ -58,9 +59,14 @@ request flow.
 
 | Method | Path | Auth | Description |
 | ------ | ---- | ---- | ----------- |
-| POST | `/api/v1/auth/register` | – | Create an account |
+| POST | `/api/v1/auth/register` | – | Create an account (sends verification) |
 | POST | `/api/v1/auth/login` | – | Obtain access + refresh tokens |
 | POST | `/api/v1/auth/refresh` | – | Exchange a refresh token |
+| POST | `/api/v1/auth/logout` | bearer | Revoke the current access/refresh token |
+| POST | `/api/v1/auth/verify-email` | – | Confirm an email with a verification token |
+| POST | `/api/v1/auth/resend-verification` | – | Re-send the verification email |
+| POST | `/api/v1/auth/password-reset/request` | – | Request a reset token by email |
+| POST | `/api/v1/auth/password-reset/confirm` | – | Set a new password with a reset token |
 | GET | `/api/v1/auth/me` | bearer | Current profile |
 | GET | `/api/v1/flights/search` | optional | Aggregated, ranked flight search |
 | GET | `/api/v1/weather` | – | Forecast for a location & date |

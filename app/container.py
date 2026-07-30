@@ -20,6 +20,8 @@ from app.providers.weather import OpenMeteoWeatherProvider
 from app.resilience.cache import Cache, InMemoryCache
 from app.resilience.circuit_breaker import CircuitBreaker
 from app.services.aggregation import FlightAggregationService
+from app.services.notifications import ConsoleNotifier, Notifier
+from app.services.token_blocklist import TokenBlocklist
 
 
 class Container:
@@ -29,6 +31,9 @@ class Container:
         self.session_factory = create_session_factory(self.engine)
         self.cache: Cache = cache or InMemoryCache()
         self.rate_limiter = RateLimiter(limit=settings.rate_limit_per_minute)
+        self.token_blocklist = TokenBlocklist(self.cache)
+        # Swap for SmtpNotifier in production (wired from settings).
+        self.notifier: Notifier = ConsoleNotifier()
 
         self._http = httpx.AsyncClient(timeout=settings.http_timeout_seconds)
 

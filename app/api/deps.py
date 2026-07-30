@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import AsyncIterator
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -57,9 +57,16 @@ def get_user_repository(session: SessionDep) -> UserRepository:
 
 
 def get_auth_service(
-    session: SessionDep, settings: SettingsDep
+    session: SessionDep,
+    settings: SettingsDep,
+    container: Annotated[Container, Depends(get_container)],
 ) -> AuthService:
-    return AuthService(UserRepository(session), settings)
+    return AuthService(
+        UserRepository(session),
+        settings,
+        notifier=container.notifier,
+        blocklist=container.token_blocklist,
+    )
 
 
 def get_flight_service(
@@ -93,11 +100,11 @@ async def enforce_rate_limit(
         )
 
 
-async def get_current_user(
-    session: SessionDep,
+async def get_access_payload(
     settings: SettingsDep,
+    container: Annotated[Container, Depends(get_container)],
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
-) -> User:
+) -> dict[str, Any]:
     if credentials is None:
         raise AuthenticationError("missing bearer token")
     try:
@@ -106,7 +113,15 @@ async def get_current_user(
         )
     except TokenError as exc:
         raise AuthenticationError(str(exc)) from exc
+    if await container.token_blocklist.is_revoked(payload):
+        raise AuthenticationError("this session has been revoked")
+    return payload
 
+
+AccessPayload = Annotated[dict[str, Any], Depends(get_access_payload)]
+
+
+async def get_current_user(session: SessionDep, payload: AccessPayload) -> User:
     user = await UserRepository(session).get_by_id(uuid.UUID(payload["sub"]))
     if user is None or not user.is_active:
         raise AuthenticationError("user no longer exists or is disabled")

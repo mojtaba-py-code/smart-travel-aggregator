@@ -2,18 +2,31 @@
 
 from __future__ import annotations
 
+import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request, status
 
-from app.api.deps import CurrentUser, SessionDep, enforce_rate_limit, get_auth_service
+from app.api.deps import (
+    AccessPayload,
+    CurrentUser,
+    SessionDep,
+    enforce_rate_limit,
+    get_auth_service,
+)
 from app.db.models import AuditLog
 from app.schemas.auth import (
     LoginRequest,
+    LogoutRequest,
+    MessageResponse,
+    PasswordResetConfirm,
+    PasswordResetRequest,
     RefreshRequest,
     RegisterRequest,
+    ResendVerificationRequest,
     TokenResponse,
     UserOut,
+    VerifyEmailRequest,
 )
 from app.services.auth_service import AuthService
 
@@ -75,3 +88,59 @@ async def refresh(
 @router.get("/me", response_model=UserOut)
 async def me(current_user: CurrentUser) -> UserOut:
     return UserOut.model_validate(current_user)
+
+
+@router.post("/verify-email", response_model=MessageResponse)
+async def verify_email(
+    payload: VerifyEmailRequest,
+    auth: Annotated[AuthService, Depends(get_auth_service)],
+) -> MessageResponse:
+    await auth.verify_email(payload.token)
+    return MessageResponse(message="email verified")
+
+
+@router.post("/resend-verification", response_model=MessageResponse)
+async def resend_verification(
+    payload: ResendVerificationRequest,
+    auth: Annotated[AuthService, Depends(get_auth_service)],
+) -> MessageResponse:
+    await auth.resend_verification(payload.email)
+    # Response is intentionally identical whether or not the address exists.
+    return MessageResponse(message="if the account exists, a verification email was sent")
+
+
+@router.post("/password-reset/request", response_model=MessageResponse)
+async def request_password_reset(
+    payload: PasswordResetRequest,
+    auth: Annotated[AuthService, Depends(get_auth_service)],
+) -> MessageResponse:
+    await auth.request_password_reset(payload.email)
+    return MessageResponse(message="if the account exists, a reset email was sent")
+
+
+@router.post("/password-reset/confirm", response_model=MessageResponse)
+async def confirm_password_reset(
+    payload: PasswordResetConfirm,
+    auth: Annotated[AuthService, Depends(get_auth_service)],
+) -> MessageResponse:
+    await auth.reset_password(payload.token, payload.new_password)
+    return MessageResponse(message="password updated")
+
+
+@router.post("/logout", response_model=MessageResponse)
+async def logout(
+    payload: LogoutRequest,
+    access_payload: AccessPayload,
+    request: Request,
+    session: SessionDep,
+    auth: Annotated[AuthService, Depends(get_auth_service)],
+) -> MessageResponse:
+    await auth.logout(access_payload, payload.refresh_token)
+    session.add(
+        AuditLog(
+            actor_id=uuid.UUID(access_payload["sub"]),
+            action="user.logout",
+            ip_address=_client_ip(request),
+        )
+    )
+    return MessageResponse(message="logged out")

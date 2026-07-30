@@ -42,6 +42,8 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_ttl: int = 900  # 15 minutes
     refresh_token_ttl: int = 60 * 60 * 24 * 14  # 14 days
+    verify_token_ttl: int = 60 * 60 * 24  # 24 hours
+    reset_token_ttl: int = 60 * 60  # 1 hour
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
 
     # --- persistence -------------------------------------------------------
