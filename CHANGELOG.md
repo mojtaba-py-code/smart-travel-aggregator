@@ -11,9 +11,12 @@ All notable changes to this project are documented here. The format follows
   and latency histogram), with route-template labels to bound cardinality.
 - Hotel search (`GET /hotels/search`) aggregated behind a `HotelProvider` port,
   with de-duplication, rating/price ranking, filtering and cursor pagination.
+- Redis-backed rate limiter and cache, selected automatically when `REDIS_URL`
+  is set (falls back to the in-process implementations otherwise).
 
 ### Changed
 - Extracted the shared cursor pagination helpers used by both aggregators.
+- `RateLimiter` is now a protocol with in-memory and Redis implementations.
 
 ## [1.0.0] - 2026-07-30
 

@@ -11,13 +11,13 @@ import pytest_asyncio
 
 from app.container import Container
 from app.core.config import Settings
-from app.core.rate_limit import RateLimiter
+from app.core.rate_limit import InMemoryRateLimiter, RedisRateLimiter
 from app.db.base import Base
 from app.main import create_app
 
 
 async def test_rate_limiter_blocks_after_limit() -> None:
-    limiter = RateLimiter(limit=2, window_seconds=60)
+    limiter = InMemoryRateLimiter(limit=2, window_seconds=60)
     assert (await limiter.check("ip"))[0] is True
     assert (await limiter.check("ip"))[0] is True
     allowed, remaining = await limiter.check("ip")
@@ -57,6 +57,30 @@ async def test_http_rate_limit_returns_429(throttled_client: httpx.AsyncClient) 
 
 @pytest.mark.parametrize("identity", ["a", "b", "c"])
 async def test_rate_limiter_remaining_counts_down(identity: str) -> None:
-    limiter = RateLimiter(limit=3)
+    limiter = InMemoryRateLimiter(limit=3)
     _, remaining = await limiter.check(identity)
     assert remaining == 2
+
+
+class FakeRedisCounter:
+    """Minimal INCR/EXPIRE stand-in for the Redis rate limiter."""
+
+    def __init__(self) -> None:
+        self.counts: dict[str, int] = {}
+        self.expires: dict[str, int] = {}
+
+    async def incr(self, key: str) -> int:
+        self.counts[key] = self.counts.get(key, 0) + 1
+        return self.counts[key]
+
+    async def expire(self, key: str, seconds: int) -> None:
+        self.expires[key] = seconds
+
+
+async def test_redis_rate_limiter_blocks_after_limit() -> None:
+    limiter = RedisRateLimiter(FakeRedisCounter(), limit=2, window_seconds=30)  # type: ignore[arg-type]
+    assert await limiter.check("ip") == (True, 1)
+    assert await limiter.check("ip") == (True, 0)
+    allowed, remaining = await limiter.check("ip")
+    assert allowed is False
+    assert remaining == 0
