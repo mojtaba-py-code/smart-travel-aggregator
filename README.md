@@ -18,6 +18,27 @@ suite baked in from the start.
 
 ---
 
+## Live demo
+
+Interactive API docs (Swagger UI at `/docs`, ReDoc at `/redoc`):
+
+![API documentation — Swagger UI and ReDoc](docs/api-docs.png)
+
+**Try it yourself in one click** — the app falls back to SQLite + an in-memory
+cache when no Postgres/Redis is configured, so it runs on a single free web
+service with no external services to set up:
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/mojtaba-py-code/smart-travel-aggregator)
+
+Flight and hotel search return data from bundled sample providers; weather and
+currency call free public APIs. `SECRET_KEY` is generated automatically by the
+[`render.yaml`](render.yaml) blueprint — nothing to paste.
+
+> First request after a period of inactivity wakes the free instance and may
+> take ~30s; subsequent requests are fast.
+
+---
+
 ## Highlights
 
 - **Aggregation core** — provider adapters behind stable ports; concurrent

@@ -8,10 +8,10 @@ on startup instead of surfacing as obscure runtime errors later.
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import Field, RedisDsn, field_validator, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 Environment = Literal["development", "test", "staging", "production"]
 
@@ -44,7 +44,12 @@ class Settings(BaseSettings):
     refresh_token_ttl: int = 60 * 60 * 24 * 14  # 14 days
     verify_token_ttl: int = 60 * 60 * 24  # 24 hours
     reset_token_ttl: int = 60 * 60  # 1 hour
-    cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
+    # NoDecode keeps pydantic-settings from JSON-parsing the raw env var, so the
+    # validator below owns the format: a comma-separated list or "*" both work
+    # (plain "*" is not valid JSON and would otherwise crash settings parsing).
+    cors_origins: Annotated[list[str], NoDecode] = Field(
+        default_factory=lambda: ["http://localhost:3000"]
+    )
 
     # --- persistence -------------------------------------------------------
     database_url: str = "sqlite+aiosqlite:///./smart_travel.db"
@@ -64,9 +69,15 @@ class Settings(BaseSettings):
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _split_origins(cls, value: object) -> object:
-        # Allow a comma-separated string in the .env file for convenience.
+        # Accept a comma-separated string ("a.com,b.com"), a bare "*", or a JSON
+        # array ('["a.com"]') from the environment — all common in the wild.
         if isinstance(value, str):
-            return [item.strip() for item in value.split(",") if item.strip()]
+            text = value.strip()
+            if text.startswith("["):
+                import json
+
+                return json.loads(text)
+            return [item.strip() for item in text.split(",") if item.strip()]
         return value
 
     @model_validator(mode="after")

@@ -1,0 +1,29 @@
+# Render blueprint — free-tier live demo.
+#
+# The app already falls back to SQLite + in-memory cache when no Postgres/Redis
+# URL is set (see app/core/config.py), so a single web service is enough to run
+# the whole API. Flight/hotel search use bundled sample providers; weather and
+# currency call free public APIs.
+#
+# Deploy: push to GitHub, then in Render -> "New +" -> "Blueprint" and pick this
+# repo. SECRET_KEY is generated automatically; no secrets to paste.
+services:
+  - type: web
+    name: smart-travel-aggregator
+    runtime: python
+    plan: free
+    region: frankfurt
+    buildCommand: pip install --upgrade pip && pip install -e .
+    startCommand: python -m app.prestart && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health/live
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.5"
+      - key: ENVIRONMENT
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:///./smart_travel.db
+      - key: CORS_ORIGINS
+        value: "*"
