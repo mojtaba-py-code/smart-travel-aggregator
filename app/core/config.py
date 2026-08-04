@@ -7,6 +7,7 @@ on startup instead of surfacing as obscure runtime errors later.
 
 from __future__ import annotations
 
+import json
 from functools import lru_cache
 from typing import Annotated, Literal
 
@@ -74,8 +75,6 @@ class Settings(BaseSettings):
         if isinstance(value, str):
             text = value.strip()
             if text.startswith("["):
-                import json
-
                 return json.loads(text)
             return [item.strip() for item in text.split(",") if item.strip()]
         return value
