@@ -1,5 +1,6 @@
 # Smart Travel Aggregator
 
+[![Live Demo](https://img.shields.io/badge/%F0%9F%9F%A2%20Live%20Demo-onrender.com-brightgreen)](https://smart-travel-aggregator.onrender.com/docs)
 [![CI](https://github.com/mojtaba-py-code/smart-travel-aggregator/actions/workflows/ci.yml/badge.svg)](https://github.com/mojtaba-py-code/smart-travel-aggregator/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org)
 [![Coverage](https://img.shields.io/badge/coverage-92%25-brightgreen.svg)](#testing--quality)
@@ -19,6 +20,9 @@ suite baked in from the start.
 ---
 
 ## Live demo
+
+**▶ Try it live:** <https://smart-travel-aggregator.onrender.com/docs> — hosted on
+Render's free tier (first request after idle wakes the instance, ~30s).
 
 Interactive API docs (Swagger UI at `/docs`, ReDoc at `/redoc`):
 
