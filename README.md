@@ -1,6 +1,6 @@
 # Smart Travel Aggregator
 
-[![Live Demo](https://img.shields.io/badge/%F0%9F%9F%A2%20Live%20Demo-onrender.com-brightgreen)](https://smart-travel-aggregator.onrender.com/docs)
+[![Live Demo](https://img.shields.io/badge/%E2%96%B6%20Live%20demo-wakes%20in%20~40s-brightgreen)](https://smart-travel-aggregator.onrender.com/docs)
 [![CI](https://github.com/mojtaba-py-code/smart-travel-aggregator/actions/workflows/ci.yml/badge.svg)](https://github.com/mojtaba-py-code/smart-travel-aggregator/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org)
 [![Coverage](https://img.shields.io/badge/coverage-92%25-brightgreen.svg)](#testing--quality)
