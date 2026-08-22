@@ -8,6 +8,7 @@ console notifier, which logs the message instead of delivering it.
 from __future__ import annotations
 
 import smtplib
+import ssl
 from email.message import EmailMessage
 from typing import Protocol
 
@@ -39,7 +40,7 @@ class SmtpNotifier:
         self._password = password
         self._sender = sender
 
-    async def send(self, *, to: str, subject: str, body: str) -> None:  # pragma: no cover
+    async def send(self, *, to: str, subject: str, body: str) -> None:
         message = EmailMessage()
         message["From"] = self._sender
         message["To"] = to
@@ -47,7 +48,10 @@ class SmtpNotifier:
         message.set_content(body)
         # smtplib is blocking; in production this runs inside a Celery worker.
         with smtplib.SMTP(self._host, self._port) as server:
-            server.starttls()
+            # Without an explicit context smtplib falls back to one that checks
+            # neither the certificate nor the hostname, so any on-path server
+            # could present its own and collect the password below.
+            server.starttls(context=ssl.create_default_context())
             server.login(self._username, self._password)
             server.send_message(message)
         logger.info("notification_sent", channel="smtp", to=to, subject=subject)

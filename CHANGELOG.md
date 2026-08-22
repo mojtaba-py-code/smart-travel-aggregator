@@ -42,6 +42,9 @@ Nothing yet.
   that identity out permanently.
 
 ### Security
+- The SMTP notifier hands its password to the mail server only over a TLS
+  channel whose certificate and hostname it verified; the context smtplib falls
+  back to when none is given checks neither.
 - The deployed demo no longer answers every origin with
   `Access-Control-Allow-Origin: <caller>` plus
   `Access-Control-Allow-Credentials: true`. Wildcard origins combined with
