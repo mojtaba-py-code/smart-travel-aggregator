@@ -13,7 +13,6 @@ from app.core.config import get_settings
 from app.db.models import AuditLog
 from app.repositories.price_alerts import PriceAlertRepository
 from app.repositories.users import UserRepository
-from app.services.notifications import ConsoleNotifier
 from app.services.price_monitor import PriceMonitor
 from app.workers.celery_app import celery_app
 
@@ -31,7 +30,7 @@ async def _monitor_prices() -> int:
                 alerts=PriceAlertRepository(session),
                 users=UserRepository(session),
                 flights=container.flight_service,
-                notifier=ConsoleNotifier(),
+                notifier=container.notifier,
             )
             report = await monitor.run_once()
             await session.commit()

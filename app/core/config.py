@@ -11,7 +11,7 @@ import json
 from functools import lru_cache
 from typing import Annotated, Literal
 
-from pydantic import Field, RedisDsn, field_validator, model_validator
+from pydantic import Field, RedisDsn, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 Environment = Literal["development", "test", "staging", "production"]
@@ -59,6 +59,16 @@ class Settings(BaseSettings):
     # --- persistence -------------------------------------------------------
     database_url: str = "sqlite+aiosqlite:///./smart_travel.db"
     redis_url: RedisDsn | None = None
+
+    # --- email --------------------------------------------------------------
+    # Verification and password-reset messages are handed to the SMTP notifier
+    # as soon as a host is configured; with no host they are logged instead,
+    # which is what dev and the public demo want.
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: SecretStr = SecretStr("")
+    smtp_sender: str = ""
 
     # --- rate limiting -----------------------------------------------------
     rate_limit_per_minute: int = 120

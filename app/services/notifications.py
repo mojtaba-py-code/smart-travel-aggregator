@@ -1,7 +1,8 @@
 """Notification channels.
 
-Business code depends on the :class:`Notifier` protocol. The console notifier
-is used in development and tests; the SMTP notifier is wired in production.
+Business code depends on the :class:`Notifier` protocol. The container picks the
+implementation: the SMTP notifier when ``SMTP_HOST`` is configured, otherwise the
+console notifier, which logs the message instead of delivering it.
 """
 
 from __future__ import annotations

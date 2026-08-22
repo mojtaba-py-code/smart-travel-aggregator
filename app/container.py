@@ -24,7 +24,7 @@ from app.resilience.cache import Cache, InMemoryCache, RedisCache
 from app.resilience.circuit_breaker import CircuitBreaker
 from app.services.aggregation import FlightAggregationService
 from app.services.hotel_aggregation import HotelAggregationService
-from app.services.notifications import ConsoleNotifier, Notifier
+from app.services.notifications import ConsoleNotifier, Notifier, SmtpNotifier
 from app.services.token_blocklist import TokenBlocklist
 
 
@@ -51,8 +51,19 @@ class Container:
 
         self.proxy_trust = ProxyTrust(settings.trusted_proxy_cidrs)
         self.token_blocklist = TokenBlocklist(self.cache)
-        # Swap for SmtpNotifier in production (wired from settings).
-        self.notifier: Notifier = ConsoleNotifier()
+        # A configured SMTP host is what makes verification and reset mail real;
+        # without one the console notifier logs the message instead of sending it.
+        self.notifier: Notifier = (
+            SmtpNotifier(
+                host=settings.smtp_host,
+                port=settings.smtp_port,
+                username=settings.smtp_username,
+                password=settings.smtp_password.get_secret_value(),
+                sender=settings.smtp_sender or settings.smtp_username,
+            )
+            if settings.smtp_host
+            else ConsoleNotifier()
+        )
 
         self._http = httpx.AsyncClient(timeout=settings.http_timeout_seconds)
 

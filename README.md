@@ -166,6 +166,17 @@ for weather (Open-Meteo) and currency (exchangerate.host). Recommended
 production providers: Amadeus (flights/hotels), OpenWeatherMap, Open Exchange
 Rates, OpenRouteService.
 
+## Email delivery
+
+Verification and password-reset messages are sent over SMTP as soon as
+`SMTP_HOST` (plus `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_SENDER`)
+is configured — the container selects the SMTP notifier from those settings.
+
+With no SMTP host set — the default, and what the hosted demo runs — nothing is
+delivered: the console notifier logs that a message was produced and drops it.
+Those endpoints still behave correctly, but the token never reaches an inbox, so
+point the app at a real mail server before inviting real users.
+
 ## Testing & quality
 
 ```bash
