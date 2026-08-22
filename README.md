@@ -51,7 +51,10 @@ currency call free public APIs. `SECRET_KEY` is generated automatically by the
 - **Security first** — Argon2id password hashing, JWT access/refresh tokens with
   a `type` claim, email verification, password reset, logout via token
   revocation (denylist), RBAC, per-client rate limiting, hardened HTTP headers,
-  and an append-only audit log.
+  and an append-only audit log. Behind a load balancer, set
+  `TRUSTED_PROXY_CIDRS` so the limiter and the audit log see the real caller —
+  `X-Forwarded-For` is believed only from those networks, never from a
+  caller who simply sends the header.
 - **Input validation everywhere** — Pydantic v2 models and typed query
   parameters reject bad input at the edge; errors come back as RFC 7807
   `application/problem+json` with a `trace_id`.

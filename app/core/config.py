@@ -62,6 +62,10 @@ class Settings(BaseSettings):
 
     # --- rate limiting -----------------------------------------------------
     rate_limit_per_minute: int = 120
+    # Networks whose X-Forwarded-For we are willing to believe. Empty (the
+    # default) means the header is ignored entirely: trusting it from arbitrary
+    # peers would let anyone forge a source address and walk around the limiter.
+    trusted_proxy_cidrs: Annotated[list[str], NoDecode] = Field(default_factory=list)
 
     # --- external providers -----------------------------------------------
     weather_base_url: str = "https://api.open-meteo.com/v1"
@@ -71,9 +75,9 @@ class Settings(BaseSettings):
     provider_cache_ttl: int = 300
 
     # ----------------------------------------------------------------------
-    @field_validator("cors_origins", mode="before")
+    @field_validator("cors_origins", "trusted_proxy_cidrs", mode="before")
     @classmethod
-    def _split_origins(cls, value: object) -> object:
+    def _split_list(cls, value: object) -> object:
         # Accept a comma-separated string ("a.com,b.com"), a bare "*", or a JSON
         # array ('["a.com"]') from the environment — all common in the wild.
         if isinstance(value, str):

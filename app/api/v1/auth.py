@@ -13,6 +13,7 @@ from app.api.deps import (
     SessionDep,
     enforce_rate_limit,
     get_auth_service,
+    get_container,
 )
 from app.db.models import AuditLog
 from app.schemas.auth import (
@@ -34,7 +35,9 @@ router = APIRouter(prefix="/auth", tags=["auth"], dependencies=[Depends(enforce_
 
 
 def _client_ip(request: Request) -> str | None:
-    return request.client.host if request.client else None
+    # Same rules as the rate limiter: the forwarded header counts only when the
+    # peer is a proxy we configured, so the audit log records the real caller.
+    return get_container(request).proxy_trust.client_ip(request)
 
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)

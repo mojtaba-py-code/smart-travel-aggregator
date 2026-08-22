@@ -97,7 +97,7 @@ def get_currency_provider(
 async def enforce_rate_limit(
     request: Request, container: Annotated[Container, Depends(get_container)]
 ) -> None:
-    identity = request.client.host if request.client else "anonymous"
+    identity = container.proxy_trust.client_ip(request) or "anonymous"
     allowed, remaining = await container.rate_limiter.check(identity)
     request.state.rate_limit_remaining = remaining
     if not allowed:

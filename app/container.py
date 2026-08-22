@@ -11,6 +11,7 @@ from __future__ import annotations
 import httpx
 from redis.asyncio import Redis
 
+from app.core.client_ip import ProxyTrust
 from app.core.config import Settings
 from app.core.rate_limit import InMemoryRateLimiter, RateLimiter, RedisRateLimiter
 from app.db.session import create_engine, create_session_factory
@@ -48,6 +49,7 @@ class Container:
             self.cache = InMemoryCache()
             self.rate_limiter = InMemoryRateLimiter(limit=settings.rate_limit_per_minute)
 
+        self.proxy_trust = ProxyTrust(settings.trusted_proxy_cidrs)
         self.token_blocklist = TokenBlocklist(self.cache)
         # Swap for SmtpNotifier in production (wired from settings).
         self.notifier: Notifier = ConsoleNotifier()

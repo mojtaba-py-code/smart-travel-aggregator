@@ -29,3 +29,9 @@ services:
       # echo whatever Origin a caller sends, which is not a browser policy at all.
       - key: CORS_ORIGINS
         value: https://smart-travel-aggregator.onrender.com
+      # Render terminates TLS in front of the service, so every request reaches
+      # the app from the platform's private network and the real caller is in
+      # X-Forwarded-For. Trusting only these non-routable ranges keeps the rate
+      # limiter per-client without letting an outside caller forge the header.
+      - key: TRUSTED_PROXY_CIDRS
+        value: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
