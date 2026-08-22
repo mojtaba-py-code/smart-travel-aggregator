@@ -1,6 +1,6 @@
 [project]
 name = "smart-travel-aggregator"
-version = "1.0.0"
+version = "1.1.0"
 description = "Aggregates flights, hotels, weather, currency and maps behind one clean, resilient REST API."
 requires-python = ">=3.12"
 readme = "README.md"
