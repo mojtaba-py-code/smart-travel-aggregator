@@ -13,6 +13,7 @@ from redis.asyncio import Redis
 
 from app.core.client_ip import ProxyTrust
 from app.core.config import Settings
+from app.core.logging import get_logger
 from app.core.rate_limit import InMemoryRateLimiter, RateLimiter, RedisRateLimiter
 from app.db.session import create_engine, create_session_factory
 from app.providers.currency import ExchangeRateProvider
@@ -26,6 +27,8 @@ from app.services.aggregation import FlightAggregationService
 from app.services.hotel_aggregation import HotelAggregationService
 from app.services.notifications import ConsoleNotifier, Notifier, SmtpNotifier
 from app.services.token_blocklist import TokenBlocklist
+
+logger = get_logger("container")
 
 
 class Container:
@@ -45,6 +48,10 @@ class Container:
             self._redis = Redis.from_url(str(settings.redis_url))
             self.cache = RedisCache(self._redis)
             self.rate_limiter = RedisRateLimiter(self._redis, limit=settings.rate_limit_per_minute)
+            # Stated at start-up so an operator who pointed REDIS_URL at an
+            # older server sees the requirement before the limiter rejects
+            # `EXPIRE ... NX` on the first rate-limited request.
+            logger.info("redis_backend_enabled", requires_redis_server=">=7.0")
         else:
             self.cache = InMemoryCache()
             self.rate_limiter = InMemoryRateLimiter(limit=settings.rate_limit_per_minute)

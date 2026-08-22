@@ -58,6 +58,9 @@ class Settings(BaseSettings):
 
     # --- persistence -------------------------------------------------------
     database_url: str = "sqlite+aiosqlite:///./smart_travel.db"
+    # Must point at a Redis server >= 7.0 — the shared rate limiter renews its
+    # window with EXPIRE ... NX, a flag earlier servers do not implement. Unset
+    # (the default) keeps the cache and the limiter in-process.
     redis_url: RedisDsn | None = None
 
     # --- email --------------------------------------------------------------

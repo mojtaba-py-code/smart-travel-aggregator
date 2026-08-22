@@ -26,6 +26,9 @@ Nothing yet.
   secret scan across the whole history.
 
 ### Changed
+- `REDIS_URL` now needs a Redis server 7.0 or newer: the shared rate limiter
+  renews its window with `EXPIRE ... NX`, a flag earlier servers reject. Leaving
+  it unset keeps the cache and the limiter in-process, as before.
 - GitHub Actions are pinned to commit SHAs and the workflow token is scoped to
   `contents: read`.
 - Dependency floors raised past releases with published CVEs.

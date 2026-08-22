@@ -4,6 +4,9 @@ Business code depends on the :class:`RateLimiter` protocol. A single node (and
 the test suite) uses the in-process limiter; a multi-node deployment sets
 ``REDIS_URL`` and the container wires in the Redis-backed limiter, which shares
 one fixed window across every instance.
+
+The Redis implementation needs a **server 7.0 or newer**: it renews the window
+with ``EXPIRE ... NX``, and the ``NX`` flag was added in 7.0.
 """
 
 from __future__ import annotations
@@ -72,7 +75,10 @@ class InMemoryRateLimiter:
 
 
 class RedisRateLimiter:
-    """Fixed-window limiter shared across nodes via Redis INCR + EXPIRE."""
+    """Fixed-window limiter shared across nodes via Redis INCR + EXPIRE.
+
+    Requires Redis >= 7.0 for ``EXPIRE ... NX``.
+    """
 
     def __init__(self, client: Redis, *, limit: int, window_seconds: int = 60) -> None:
         self.limit = limit

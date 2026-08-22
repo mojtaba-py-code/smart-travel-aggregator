@@ -149,13 +149,18 @@ Out of the box the app uses SQLite and an in-memory cache, so it runs with no
 external services. Point `DATABASE_URL`/`REDIS_URL` at Postgres/Redis for a
 production-like setup.
 
+**`REDIS_URL` requires a Redis server 7.0 or newer.** The shared rate limiter
+renews its window with `EXPIRE ... NX`, which older servers reject; on Redis 6
+every rate-limited request fails. Leave `REDIS_URL` unset and the in-process
+limiter and cache are used instead, which is correct for a single node.
+
 ### Docker
 
 ```bash
 docker compose up --build
 ```
 
-This starts the API, a Celery worker+beat, PostgreSQL and Redis.
+This starts the API, a Celery worker+beat, PostgreSQL 16 and Redis 7.
 
 ## Providers
 
