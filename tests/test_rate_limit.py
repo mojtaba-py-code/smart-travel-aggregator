@@ -114,19 +114,93 @@ async def test_rate_limiter_remaining_counts_down(identity: str) -> None:
     assert remaining == 2
 
 
+class FakeClock:
+    def __init__(self) -> None:
+        self.now = 1_000.0
+
+    def __call__(self) -> float:
+        return self.now
+
+    def advance(self, seconds: float) -> None:
+        self.now += seconds
+
+
+async def test_idle_identities_are_forgotten() -> None:
+    clock = FakeClock()
+    limiter = InMemoryRateLimiter(limit=5, window_seconds=60, clock=clock)
+    for octet in range(50):
+        await limiter.check(f"203.0.113.{octet}")
+    assert limiter.tracked == 50
+
+    clock.advance(61)
+    await limiter.check("203.0.113.0")
+    # Every other visitor is an hour gone; holding their timestamps forever is
+    # a slow leak on a public endpoint.
+    assert limiter.tracked == 1
+
+
+async def test_the_window_still_reopens_after_it_expires() -> None:
+    clock = FakeClock()
+    limiter = InMemoryRateLimiter(limit=1, window_seconds=60, clock=clock)
+    assert (await limiter.check("ip"))[0] is True
+    assert (await limiter.check("ip"))[0] is False
+    clock.advance(61)
+    assert (await limiter.check("ip"))[0] is True
+
+
+class FakeRedisPipeline:
+    """Applies the queued commands together, the way MULTI/EXEC would."""
+
+    def __init__(self, redis: FakeRedisCounter) -> None:
+        self._redis = redis
+        self._queued: list[tuple[str, tuple[object, ...]]] = []
+
+    def incr(self, key: str) -> FakeRedisPipeline:
+        self._queued.append(("incr", (key,)))
+        return self
+
+    def expire(self, key: str, seconds: int, nx: bool = False) -> FakeRedisPipeline:
+        self._queued.append(("expire", (key, seconds, nx)))
+        return self
+
+    async def execute(self) -> list[object]:
+        results: list[object] = []
+        for command, args in self._queued:
+            if command == "incr":
+                key = str(args[0])
+                self._redis.counts[key] = self._redis.counts.get(key, 0) + 1
+                results.append(self._redis.counts[key])
+            else:
+                key, seconds, nx = str(args[0]), int(args[1]), bool(args[2])
+                if nx and key in self._redis.expires:
+                    results.append(False)
+                    continue
+                self._redis.expires[key] = seconds
+                self._redis.expire_writes.append(key)
+                results.append(True)
+        # The defect this guards: a counter that outlives its window blocks that
+        # identity permanently, so no key may end a transaction without a TTL.
+        assert set(self._redis.counts) <= set(self._redis.expires), "counter left without an expiry"
+        return results
+
+
 class FakeRedisCounter:
-    """Minimal INCR/EXPIRE stand-in for the Redis rate limiter."""
+    """INCR/EXPIRE stand-in that refuses to be used non-atomically."""
 
     def __init__(self) -> None:
         self.counts: dict[str, int] = {}
         self.expires: dict[str, int] = {}
+        self.expire_writes: list[str] = []
+
+    def pipeline(self, transaction: bool = True) -> FakeRedisPipeline:
+        assert transaction, "the window update has to be a transaction"
+        return FakeRedisPipeline(self)
 
     async def incr(self, key: str) -> int:
-        self.counts[key] = self.counts.get(key, 0) + 1
-        return self.counts[key]
+        raise AssertionError("INCR must travel with its EXPIRE, inside a pipeline")
 
-    async def expire(self, key: str, seconds: int) -> None:
-        self.expires[key] = seconds
+    async def expire(self, key: str, seconds: int, nx: bool = False) -> None:
+        raise AssertionError("EXPIRE must travel with its INCR, inside a pipeline")
 
 
 async def test_redis_rate_limiter_blocks_after_limit() -> None:
@@ -136,3 +210,14 @@ async def test_redis_rate_limiter_blocks_after_limit() -> None:
     allowed, remaining = await limiter.check("ip")
     assert allowed is False
     assert remaining == 0
+
+
+async def test_redis_window_is_fixed_and_always_carries_a_ttl() -> None:
+    fake = FakeRedisCounter()
+    limiter = RedisRateLimiter(fake, limit=5, window_seconds=30)  # type: ignore[arg-type]
+    for _ in range(3):
+        await limiter.check("ip")
+    assert fake.expires == {"ratelimit:ip": 30}
+    # Only the first hit sets the expiry; later hits must not push the window
+    # forward, or a steady stream of requests would never let the count reset.
+    assert fake.expire_writes == ["ratelimit:ip"]
