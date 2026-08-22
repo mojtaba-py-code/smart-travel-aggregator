@@ -16,6 +16,15 @@ env/
 *.db
 *.sqlite3
 
+# Key material
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+id_rsa*
+credentials.json
+
 # Test & coverage
 .pytest_cache/
 .coverage
