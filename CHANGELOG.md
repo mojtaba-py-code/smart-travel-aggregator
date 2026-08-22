@@ -6,7 +6,15 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-Nothing yet.
+### Security
+- Wildcard origins combined with credentials are refused in every environment,
+  not only in production. A staging or development deployment could previously
+  start with `CORS_ORIGINS=*` and `CORS_ALLOW_CREDENTIALS=true`, which makes
+  Starlette echo the caller's Origin back with
+  `Access-Control-Allow-Credentials: true` and turns every site on the internet
+  into a trusted one. The combination is never a valid browser policy, and this
+  API carries bearer tokens rather than cookies, so nothing legitimate needed
+  it.
 
 ## [1.1.0] - 2026-08-22
 

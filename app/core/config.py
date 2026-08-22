@@ -52,8 +52,9 @@ class Settings(BaseSettings):
         default_factory=lambda: ["http://localhost:3000"]
     )
     # The API authenticates with bearer tokens, never cookies, so browsers have
-    # no credentials to attach and this stays off by default. Turning it on with
-    # a "*" origin list is refused outright (see the validator below).
+    # no credentials to attach and this stays off by default. Turning it on
+    # while "*" is in the origin list is refused outright, in every environment
+    # (see the validator below).
     cors_allow_credentials: bool = False
 
     # --- persistence -------------------------------------------------------
@@ -118,13 +119,14 @@ class Settings(BaseSettings):
         # `Access-Control-Allow-Credentials: true`, which hands every site on the
         # internet an authenticated cross-origin channel. Refuse the combination
         # rather than ship it.
-        if (
-            self.environment == "production"
-            and self.cors_allow_credentials
-            and "*" in self.cors_origins
-        ):
+        #
+        # Every environment, not just production: this API carries bearer tokens
+        # rather than cookies, so allowing credentials buys nothing anywhere, and
+        # a developer's machine is a reachable origin like any other. A setting
+        # that only fails on the last deploy of the chain is found too late.
+        if self.cors_allow_credentials and "*" in self.cors_origins:
             raise ValueError(
-                "CORS_ORIGINS must list explicit origins in production when "
+                "CORS_ORIGINS must list explicit origins when "
                 "CORS_ALLOW_CREDENTIALS is on; '*' plus credentials makes every "
                 "origin a trusted one."
             )
