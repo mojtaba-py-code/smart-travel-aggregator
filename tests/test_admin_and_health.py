@@ -41,6 +41,12 @@ async def test_admin_metrics_for_admin(
     assert "popular_routes" in body
 
 
+async def test_root_sends_visitors_to_the_docs(client: httpx.AsyncClient) -> None:
+    resp = await client.get("/")
+    assert resp.status_code == 307
+    assert resp.headers["location"] == "/docs"
+
+
 async def test_unknown_route_is_problem_json(client: httpx.AsyncClient) -> None:
     resp = await client.get("/api/v1/does-not-exist")
     assert resp.status_code == 404

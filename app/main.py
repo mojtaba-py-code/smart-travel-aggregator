@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 
 from app import __version__
 from app.api.v1.router import api_router
@@ -62,6 +63,12 @@ def create_app(settings: Settings | None = None, *, container: Container | None 
     register_exception_handlers(app)
     app.include_router(api_router, prefix=settings.api_prefix)
     app.add_api_route("/metrics", metrics_endpoint, include_in_schema=False)
+
+    @app.get("/", include_in_schema=False)
+    async def root() -> RedirectResponse:
+        # Trimming the path off the advertised link used to land on a 404.
+        return RedirectResponse(url="/docs")
+
     return app
 
 
