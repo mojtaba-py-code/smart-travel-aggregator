@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Bandit and pip-audit judge unchanged code against a moving advisory
+  # database, so a quiet week is exactly when a new CVE goes unnoticed.
+  schedule:
+    - cron: "0 6 * * 1"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
