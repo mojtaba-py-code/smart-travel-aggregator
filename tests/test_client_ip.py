@@ -2,9 +2,17 @@
 
 from __future__ import annotations
 
+from typing import Any
+
+import httpx
+import pytest
 from starlette.requests import Request
 
+from app.container import Container
+from app.core import middleware
 from app.core.client_ip import ProxyTrust
+from app.core.config import Settings
+from app.main import create_app
 
 TRUSTED = ["10.0.0.0/8"]
 
@@ -72,3 +80,56 @@ def test_invalid_cidr_is_dropped_rather_than_crashing_startup() -> None:
 
 def test_missing_client_yields_no_address() -> None:
     assert ProxyTrust(TRUSTED).client_ip(_request(None)) is None
+
+
+class _RecordingLogger:
+    """Stands in for the access logger so the emitted fields can be inspected."""
+
+    def __init__(self) -> None:
+        self.events: list[dict[str, Any]] = []
+
+    def info(self, event: str, **fields: Any) -> None:
+        self.events.append({"event": event, **fields})
+
+    def error(self, event: str, **fields: Any) -> None:
+        self.events.append({"event": event, **fields})
+
+
+async def _log_one_request(settings: Settings) -> None:
+    container = Container(settings)
+    try:
+        app = create_app(settings, container=container)
+        async with app.router.lifespan_context(app):
+            transport = httpx.ASGITransport(app=app, client=("10.1.2.3", 51234))
+            async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+                response = await client.get(
+                    "/api/v1/health/live", headers={"X-Forwarded-For": "203.0.113.9"}
+                )
+                assert response.status_code == 200
+    finally:
+        await container.aclose()
+
+
+async def test_access_log_records_the_caller_behind_a_trusted_proxy(
+    settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The access log is the one place the address is used for tracing."""
+    recorder = _RecordingLogger()
+    monkeypatch.setattr(middleware, "logger", recorder)
+
+    await _log_one_request(settings.model_copy(update={"trusted_proxy_cidrs": TRUSTED}))
+
+    completed = [e for e in recorder.events if e["event"] == "request_completed"]
+    assert [e["client"] for e in completed] == ["203.0.113.9"]
+
+
+async def test_access_log_keeps_the_peer_when_no_proxy_is_trusted(
+    settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    recorder = _RecordingLogger()
+    monkeypatch.setattr(middleware, "logger", recorder)
+
+    await _log_one_request(settings)
+
+    completed = [e for e in recorder.events if e["event"] == "request_completed"]
+    assert [e["client"] for e in completed] == ["10.1.2.3"]

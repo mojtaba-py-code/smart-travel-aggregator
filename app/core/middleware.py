@@ -10,11 +10,28 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
+from app.core.client_ip import ProxyTrust
 from app.core.logging import get_logger, request_id_ctx
 
 logger = get_logger("http")
 
 REQUEST_ID_HEADER = "X-Request-ID"
+
+# Used until the container is on ``app.state``: trusting nothing means the
+# access log falls back to the immediate peer, which is what it logged before.
+_NO_TRUSTED_PROXY = ProxyTrust()
+
+
+def _client_ip(request: Request) -> str | None:
+    """Resolve the caller the same way the limiter and the audit log do.
+
+    Behind a proxy the peer address is the proxy's, so tracing a request back to
+    whoever made it needs the operator's trusted networks from the container.
+    """
+    container = getattr(request.app.state, "container", None)
+    trust: ProxyTrust = _NO_TRUSTED_PROXY if container is None else container.proxy_trust
+    return trust.client_ip(request)
+
 
 _SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
@@ -58,7 +75,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
             path=request.url.path,
             status_code=response.status_code,
             duration_ms=elapsed_ms,
-            client=request.client.host if request.client else None,
+            client=_client_ip(request),
         )
         return response
 

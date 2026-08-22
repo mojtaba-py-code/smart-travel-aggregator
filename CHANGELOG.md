@@ -49,8 +49,9 @@ Nothing yet.
   `Access-Control-Allow-Origin: <caller>` plus
   `Access-Control-Allow-Credentials: true`. Wildcard origins combined with
   credentials are refused outright in production.
-- Rate limiting and the audit log identify the caller rather than the proxy in
-  front of them, so one visitor can no longer exhaust everybody's quota — and a
+- Rate limiting, the audit log and the access log identify the caller rather
+  than the proxy in front of them, so one visitor can no longer exhaust
+  everybody's quota, and a request can still be traced back to its origin — a
   forged `X-Forwarded-For` from an untrusted peer is ignored.
 
 ## [1.0.0] - 2026-07-30
