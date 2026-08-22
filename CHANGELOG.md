@@ -6,18 +6,6 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-### Security
-- Wildcard origins combined with credentials are refused in every environment,
-  not only in production. A staging or development deployment could previously
-  start with `CORS_ORIGINS=*` and `CORS_ALLOW_CREDENTIALS=true`, which makes
-  Starlette echo the caller's Origin back with
-  `Access-Control-Allow-Credentials: true` and turns every site on the internet
-  into a trusted one. The combination is never a valid browser policy, and this
-  API carries bearer tokens rather than cookies, so nothing legitimate needed
-  it.
-
-## [1.1.0] - 2026-08-22
-
 ### Added
 - One-click live demo on Render's free tier through a `render.yaml` blueprint:
   SQLite plus an in-memory cache, so the whole API runs with no external
@@ -56,10 +44,16 @@ All notable changes to this project are documented here. The format follows
 - The SMTP notifier hands its password to the mail server only over a TLS
   channel whose certificate and hostname it verified; the context smtplib falls
   back to when none is given checks neither.
-- The deployed demo no longer answers every origin with
-  `Access-Control-Allow-Origin: <caller>` plus
-  `Access-Control-Allow-Credentials: true`. Wildcard origins combined with
-  credentials are refused outright in production.
+- Wildcard origins combined with credentials are refused in every environment,
+  production and otherwise. The deployed demo no longer answers every origin
+  with `Access-Control-Allow-Origin: <caller>` plus
+  `Access-Control-Allow-Credentials: true`, and a staging or development
+  deployment can no longer start with `CORS_ORIGINS=*` and
+  `CORS_ALLOW_CREDENTIALS=true` either: Starlette echoes the caller's Origin
+  back with `Access-Control-Allow-Credentials: true`, which turns every site on
+  the internet into a trusted one. The combination is never a valid browser
+  policy, and this API carries bearer tokens rather than cookies, so nothing
+  legitimate needed it.
 - Rate limiting, the audit log and the access log identify the caller rather
   than the proxy in front of them, so one visitor can no longer exhaust
   everybody's quota, and a request can still be traced back to its origin — a
@@ -92,6 +86,5 @@ All notable changes to this project are documented here. The format follows
 - Extracted the shared cursor pagination helpers used by both aggregators.
 - `RateLimiter` is a protocol with in-memory and Redis implementations.
 
-[Unreleased]: https://github.com/mojtaba-py-code/smart-travel-aggregator/compare/v1.1.0...HEAD
-[1.1.0]: https://github.com/mojtaba-py-code/smart-travel-aggregator/compare/v1.0.0...v1.1.0
+[Unreleased]: https://github.com/mojtaba-py-code/smart-travel-aggregator/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/mojtaba-py-code/smart-travel-aggregator/releases/tag/v1.0.0
