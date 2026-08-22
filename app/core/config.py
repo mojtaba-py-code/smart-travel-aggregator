@@ -51,6 +51,10 @@ class Settings(BaseSettings):
     cors_origins: Annotated[list[str], NoDecode] = Field(
         default_factory=lambda: ["http://localhost:3000"]
     )
+    # The API authenticates with bearer tokens, never cookies, so browsers have
+    # no credentials to attach and this stays off by default. Turning it on with
+    # a "*" origin list is refused outright (see the validator below).
+    cors_allow_credentials: bool = False
 
     # --- persistence -------------------------------------------------------
     database_url: str = "sqlite+aiosqlite:///./smart_travel.db"
@@ -87,6 +91,25 @@ class Settings(BaseSettings):
             raise ValueError(
                 "SECRET_KEY must be set to a unique value in staging/production; "
                 "the shipped default is not allowed."
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _refuse_wildcard_cors_with_credentials(self) -> Settings:
+        # Starlette does not send a literal "*" when credentials are allowed: it
+        # echoes the caller's Origin back with
+        # `Access-Control-Allow-Credentials: true`, which hands every site on the
+        # internet an authenticated cross-origin channel. Refuse the combination
+        # rather than ship it.
+        if (
+            self.environment == "production"
+            and self.cors_allow_credentials
+            and "*" in self.cors_origins
+        ):
+            raise ValueError(
+                "CORS_ORIGINS must list explicit origins in production when "
+                "CORS_ALLOW_CREDENTIALS is on; '*' plus credentials makes every "
+                "origin a trusted one."
             )
         return self
 

@@ -25,5 +25,7 @@ services:
         generateValue: true
       - key: DATABASE_URL
         value: sqlite+aiosqlite:///./smart_travel.db
+      # The demo answers its own origin only. A "*" here would make Starlette
+      # echo whatever Origin a caller sends, which is not a browser policy at all.
       - key: CORS_ORIGINS
-        value: "*"
+        value: https://smart-travel-aggregator.onrender.com
