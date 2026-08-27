@@ -190,7 +190,7 @@ make type      # mypy (strict-ish)
 make test      # pytest + coverage (fails under 90%)
 ```
 
-The suite exercises security (hashing, tokens), resilience (circuit breaker,
+123 tests exercise security (hashing, tokens), resilience (circuit breaker,
 retries, cache), the aggregation algorithm, and every endpoint through the real
 ASGI stack against an isolated SQLite database.
 
