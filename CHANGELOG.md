@@ -21,6 +21,11 @@ All notable changes to this project are documented here. The format follows
 - Security policy (`SECURITY.md`), Dependabot updates, a weekly CI run and a
   secret scan across the whole history.
 
+### Fixed
+- `/docs` and `/redoc` rendered as a blank page: the API's `default-src 'none'`
+  policy also blocked the Swagger UI and ReDoc bundles from `cdn.jsdelivr.net`.
+  Those paths now get their own policy; API responses keep the strict one.
+
 ### Changed
 - `REDIS_URL` now needs a Redis server 7.0 or newer: the shared rate limiter
   renews its window with `EXPIRE ... NX`, a flag earlier servers reject. Leaving

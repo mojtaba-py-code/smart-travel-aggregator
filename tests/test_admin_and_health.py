@@ -59,3 +59,15 @@ async def test_security_headers_present(client: httpx.AsyncClient) -> None:
     assert resp.headers["X-Content-Type-Options"] == "nosniff"
     assert resp.headers["X-Frame-Options"] == "DENY"
     assert "X-Request-ID" in resp.headers
+
+
+async def test_docs_policy_allows_the_swagger_cdn_and_the_api_stays_strict(
+    client: httpx.AsyncClient,
+) -> None:
+    for path in ("/docs", "/redoc"):
+        policy = (await client.get(path)).headers["Content-Security-Policy"]
+        assert "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net" in policy
+        assert "frame-ancestors 'none'" in policy
+
+    resp = await client.get("/api/v1/health/live")
+    assert resp.headers["Content-Security-Policy"] == "default-src 'none'; frame-ancestors 'none'"
