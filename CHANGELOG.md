@@ -46,6 +46,9 @@ All notable changes to this project are documented here. The format follows
   that identity out permanently.
 
 ### Security
+- Require PyJWT >= 2.14.0. PyJWT 2.13.0 has ten published advisories, among them
+  algorithm confusion and acceptance of malformed signature segments; a
+  range that still allowed it could resolve to it.
 - The SMTP notifier hands its password to the mail server only over a TLS
   channel whose certificate and hostname it verified; the context smtplib falls
   back to when none is given checks neither.
